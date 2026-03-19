@@ -25,7 +25,7 @@ config=types.GenerateContentConfig(
         system_instruction=prompts.system_prompt
         )
 
-for _ in range(20):
+for _ in range(40):
     response = client.models.generate_content(
         model = "gemini-3-flash-preview",
         contents=messages,
