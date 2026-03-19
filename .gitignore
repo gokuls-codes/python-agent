@@ -1,3 +1,5 @@
 .env
 
-.vent/
+.venv/
+
+__pycache__/
