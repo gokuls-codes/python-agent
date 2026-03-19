@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+import prompts
+from functions.call_function import available_functions, call_function
+
 load_dotenv()
 
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -16,12 +19,35 @@ args = parser.parse_args()
 
 messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
+config=types.GenerateContentConfig(
+        tools=[available_functions],
+        system_instruction=prompts.system_prompt
+        )
+
 response = client.models.generate_content(
         model = "gemini-3-flash-preview",
         contents=messages,
+        config=config
         )
 
-print(response.text)
+if response.function_calls and len(response.function_calls) > 0:
+    for function_call in response.function_calls:
+        # print(f"Calling function: {function_call.name}({function_call.args})")
+        function_call_result = call_function(function_call, args.verbose)
+
+        if len(function_call_result.parts) == 0:
+            raise Exception("Function call result is empty")
+
+        if not function_call_result.parts[0].function_response:
+            raise Exception("Function call result is missing function_response")
+
+        if not function_call_result.parts[0].function_response.response:
+            raise Exception("Function call result is missing response")
+
+        if args.verbose:
+            print(f"-> {function_call_result.parts[0].function_response.response}")
+else:
+    print(response.text)
 
 if response.usage_metadata is not None and args.verbose:
     print(f"User prompt: {args.user_prompt}")
