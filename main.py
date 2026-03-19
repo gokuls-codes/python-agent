@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 from dotenv import load_dotenv
 from google import genai
@@ -31,7 +32,7 @@ for _ in range(20):
         config=config
         )
 
-    print("candidates length: ", len(response.candidates))
+    # print("candidates length: ", len(response.candidates))
     if response.candidates and len(response.candidates) > 0:
         for candidate in response.candidates:
             messages.append(candidate.content)
@@ -54,7 +55,7 @@ for _ in range(20):
                 print(f"-> {function_call_result.parts[0].function_response.response}")
 
             messages.append(function_call_result)
-            print(messages)
+            # print(messages)
     else:
         print(response.text)
         break
@@ -63,4 +64,7 @@ for _ in range(20):
         print(f"User prompt: {args.user_prompt}")
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+else:
+    print("Error: Maximum number of iterations reached without a final response.")
+    sys.exit(1)
 
