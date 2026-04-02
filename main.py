@@ -22,12 +22,23 @@ args = parser.parse_args()
 
 DEFAULT_MODEL = "gemini-3.1-flash-lite-preview"
 
-def run_agent(agent_name, system_prompt, user_content, tools, verbose=False):
+AGENT_CONFIGS = {
+    "Architect": {"prompt": prompts.architect_system_prompt, "tools": architect_tools},
+    "Coder": {"prompt": prompts.coder_system_prompt, "tools": coder_tools},
+    "QA": {"prompt": prompts.qa_system_prompt, "tools": qa_tools}
+}
+
+def run_agent(agent_name, user_content, verbose=False):
     print(f"\n--- Running {agent_name} Agent ---")
+    config_entry = AGENT_CONFIGS.get(agent_name)
+    if not config_entry:
+        print(f"Error: Unknown agent {agent_name}")
+        return None
+
     messages = [types.Content(role="user", parts=[types.Part(text=user_content)])]
     config = types.GenerateContentConfig(
-        tools=[tools],
-        system_instruction=system_prompt
+        tools=[config_entry["tools"]],
+        system_instruction=config_entry["prompt"]
     )
 
     for _ in range(40):
@@ -43,7 +54,6 @@ def run_agent(agent_name, system_prompt, user_content, tools, verbose=False):
                 )
                 break
             except ServerError as e:
-                # 503 errors are ServerErrors in genai library
                 if retry_attempt < max_retries - 1:
                     wait_time = (2 ** retry_attempt)
                     print(f"API Error (503): {e.message}. Retrying in {wait_time}s...")
@@ -64,25 +74,28 @@ def run_agent(agent_name, system_prompt, user_content, tools, verbose=False):
 
         if response.function_calls:
             for function_call in response.function_calls:
+                # Detect handoff
+                if function_call.name == "handoff_to_agent":
+                    args_dict = dict(function_call.args)
+                    target = args_dict.get("target_agent")
+                    instruction = args_dict.get("instruction")
+                    print(f"Handing off from {agent_name} to {target}...")
+                    # Return special value to trigger next agent
+                    return run_agent(target, instruction, verbose)
+
                 function_call_result = call_function(function_call, verbose)
                 messages.append(function_call_result)
         else:
             print(f"{agent_name} response: {response.text}")
             return response.text
 
+
     print(f"Error: {agent_name} reached maximum iterations.")
     return None
 
-# Architect writes todo.md
-architect_response = run_agent("Architect", prompts.architect_system_prompt, args.user_prompt, architect_tools, args.verbose)
+# Start the chain with the Architect
+run_agent("Architect", args.user_prompt, args.verbose)
 
-if architect_response:
-    # Coder reads todo.md and acts on it
-    coder_response = run_agent("Coder", prompts.coder_system_prompt, "Please read todo.md and complete the task.", coder_tools, args.verbose)
-    
-    if coder_response:
-        # QA Agent verifies the work
-        qa_response = run_agent("QA", prompts.qa_system_prompt, f"The original request was: {args.user_prompt}. Please verify the implementation.", qa_tools, args.verbose)
 
 
 

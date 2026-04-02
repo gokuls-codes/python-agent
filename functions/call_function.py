@@ -4,11 +4,34 @@ from .get_file_content import schema_get_file_content, get_file_content
 from .run_python_file import schema_run_python_file, run_python_file
 from .write_file import schema_write_file, write_file
 
+schema_handoff_to_agent = {
+    "name": "handoff_to_agent",
+    "description": "Hand off the task to another agent. Use 'Coder' after creating todo.md, or 'QA' after the work is done.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "target_agent": {
+                "type": "string",
+                "description": "The name of the agent to hand off to (e.g., 'Coder', 'QA')."
+            },
+            "instruction": {
+                "type": "string",
+                "description": "The instruction or context for the next agent."
+            }
+        },
+        "required": ["target_agent", "instruction"]
+    }
+}
+
+def handoff_to_agent(target_agent, instruction, **kwargs):
+    return f"Handing off to {target_agent} with instruction: {instruction}"
+
 architect_tools = types.Tool(
     function_declarations=[
         schema_get_files_info,
         schema_get_file_content,
-        schema_write_file
+        schema_write_file,
+        schema_handoff_to_agent
     ]
 )
 
@@ -17,7 +40,8 @@ coder_tools = types.Tool(
         schema_get_files_info,
         schema_get_file_content,
         schema_run_python_file,
-        schema_write_file
+        schema_write_file,
+        schema_handoff_to_agent
     ]
 )
 
@@ -25,7 +49,8 @@ qa_tools = types.Tool(
     function_declarations=[
         schema_get_files_info,
         schema_get_file_content,
-        schema_run_python_file
+        schema_run_python_file,
+        schema_handoff_to_agent
     ]
 )
 
@@ -34,8 +59,10 @@ function_map = {
         "get_files_info": get_files_info,
         "get_file_content": get_file_content,
         "run_python_file": run_python_file,
-        "write_file": write_file
+        "write_file": write_file,
+        "handoff_to_agent": handoff_to_agent
         }
+
 
 def call_function(function_call, verbose=False):
     if verbose:

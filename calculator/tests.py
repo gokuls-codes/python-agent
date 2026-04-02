@@ -24,7 +24,22 @@ class TestCalculator(unittest.TestCase):
         result = self.calculator.evaluate("10 / 2")
         self.assertEqual(result, 5)
 
+    def test_exponentiation(self):
+        result = self.calculator.evaluate("2 ^ 3")
+        self.assertEqual(result, 8)
+
+    def test_exponentiation_precedence(self):
+        # 2 + 3 * 2 ^ 2 = 2 + 3 * 4 = 14
+        result = self.calculator.evaluate("2 + 3 * 2 ^ 2")
+        self.assertEqual(result, 14.0)
+
     def test_division_by_zero(self):
+        # Note: Current implementation handles division by zero by returning inf,
+        # but let's check how the _apply_operator handles it.
+        # Actually it raises ZeroDivisionError in _apply_operator.
+        # Wait, the code I see in pkg/calculator.py:
+        # if operator == "/" and b == 0:
+        #    raise ZeroDivisionError("division by zero")
         with self.assertRaises(ZeroDivisionError):
             self.calculator.evaluate("10 / 0")
 

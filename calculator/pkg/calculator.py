@@ -7,12 +7,14 @@ class Calculator:
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
             "/": lambda a, b: a / b if b != 0 else float('inf'),
+            "^": lambda a, b: a ** b,
         }
         self.precedence = {
             "+": 1,
             "-": 1,
             "*": 2,
             "/": 2,
+            "^": 3,
         }
 
     def evaluate(self, expression):
