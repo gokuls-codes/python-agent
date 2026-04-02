@@ -2,6 +2,7 @@
 
 import sys
 from pkg.calculator import Calculator
+from pkg.history import save_to_history, load_history
 
 try:
     from rich.console import Console
@@ -99,6 +100,13 @@ def interactive_mode_simple(calculator):
     print("================================")
     print("Type 'exit' or 'quit' to leave.\n")
     
+    history = load_history()
+    if history:
+        print("Previous history:")
+        for h in history[-5:]:
+            print(f"  {h}")
+        print()
+    
     while True:
         try:
             expression = input("> ")
@@ -109,7 +117,8 @@ def interactive_mode_simple(calculator):
             
             if not expression.strip():
                 continue
-                
+            
+            save_to_history(expression)
             process_expression(calculator, expression, use_rich=False)
         except EOFError:
             break
@@ -119,6 +128,12 @@ def interactive_mode_simple(calculator):
 
 def interactive_mode_rich(calculator, console):
     console.print(Panel("[bold blue]Simple CLI Calculator[/bold blue]\nType 'exit' or 'quit' to leave.", border_style="cyan"))
+    
+    history = load_history()
+    if history:
+        console.print("[dim]Last 5 entries from history:[/dim]")
+        for h in history[-5:]:
+            console.print(f"[dim]  {h}[/dim]")
     
     while True:
         try:
@@ -130,7 +145,8 @@ def interactive_mode_rich(calculator, console):
             
             if not expression.strip():
                 continue
-                
+            
+            save_to_history(expression)
             process_expression(calculator, expression, console=console)
         except EOFError:
             break

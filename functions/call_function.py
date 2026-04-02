@@ -3,6 +3,8 @@ from .get_files_info import schema_get_files_info, get_files_info
 from .get_file_content import schema_get_file_content, get_file_content
 from .run_python_file import schema_run_python_file, run_python_file
 from .write_file import schema_write_file, write_file
+from .read_knowledge import schema_read_knowledge, read_knowledge
+from .update_knowledge import schema_update_knowledge, update_knowledge
 
 schema_handoff_to_agent = {
     "name": "handoff_to_agent",
@@ -31,7 +33,9 @@ architect_tools = types.Tool(
         schema_get_files_info,
         schema_get_file_content,
         schema_write_file,
-        schema_handoff_to_agent
+        schema_handoff_to_agent,
+        schema_read_knowledge,
+        schema_update_knowledge
     ]
 )
 
@@ -41,7 +45,9 @@ coder_tools = types.Tool(
         schema_get_file_content,
         schema_run_python_file,
         schema_write_file,
-        schema_handoff_to_agent
+        schema_handoff_to_agent,
+        schema_read_knowledge,
+        schema_update_knowledge
     ]
 )
 
@@ -50,7 +56,9 @@ qa_tools = types.Tool(
         schema_get_files_info,
         schema_get_file_content,
         schema_run_python_file,
-        schema_handoff_to_agent
+        schema_handoff_to_agent,
+        schema_read_knowledge,
+        schema_update_knowledge
     ]
 )
 
@@ -60,8 +68,11 @@ function_map = {
         "get_file_content": get_file_content,
         "run_python_file": run_python_file,
         "write_file": write_file,
-        "handoff_to_agent": handoff_to_agent
+        "handoff_to_agent": handoff_to_agent,
+        "read_knowledge": read_knowledge,
+        "update_knowledge": update_knowledge
         }
+
 
 
 def call_function(function_call, verbose=False):
