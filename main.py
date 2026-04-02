@@ -1,69 +1,82 @@
 import os
 import sys
 import argparse
+import ollama
+import json
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 
 import prompts
-from functions.call_function import available_functions, call_function
+from functions.call_function import call_function, get_ollama_tools
 
 load_dotenv()
 
-api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
+# The model specified by the user
+OLLAMA_MODEL = "qwen3.5:4b-q4_K_M"
 
-parser = argparse.ArgumentParser(description="Chatbot")
+parser = argparse.ArgumentParser(description="Ollama Chatbot Agent")
 parser.add_argument("user_prompt", type=str, help="User prompt")
 parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+parser.add_argument("--model", type=str, default=OLLAMA_MODEL, help="Ollama model to use")
 args = parser.parse_args()
 
-messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
+messages = [
+    {'role': 'system', 'content': prompts.system_prompt},
+    {'role': 'user', 'content': args.user_prompt}
+]
 
-config=types.GenerateContentConfig(
-        tools=[available_functions],
-        system_instruction=prompts.system_prompt
-        )
+tools = get_ollama_tools()
 
 for _ in range(40):
-    response = client.models.generate_content(
-        model = "gemini-3-flash-preview",
-        contents=messages,
-        config=config
-        )
+    if args.verbose:
+        print(f"--- Sending request to Ollama ({args.model}) ---")
+        
+    response = ollama.chat(
+        model=args.model,
+        messages=messages,
+        tools=tools,
+    )
 
-    # print("candidates length: ", len(response.candidates))
-    if response.candidates and len(response.candidates) > 0:
-        for candidate in response.candidates:
-            messages.append(candidate.content)
+    message = response['message']
+    messages.append(message)
 
-    if response.function_calls and len(response.function_calls) > 0:
-        for function_call in response.function_calls:
-            # print(f"Calling function: {function_call.name}({function_call.args})")
-            function_call_result = call_function(function_call, args.verbose)
+    # Log what the model is thinking/saying
+    if message.get('content'):
+        print(f"\n[Model]: {message['content']}")
 
-            if len(function_call_result.parts) == 0:
-                raise Exception("Function call result is empty")
-
-            if not function_call_result.parts[0].function_response:
-                raise Exception("Function call result is missing function_response")
-
-            if not function_call_result.parts[0].function_response.response:
-                raise Exception("Function call result is missing response")
-
-            if args.verbose:
-                print(f"-> {function_call_result.parts[0].function_response.response}")
-
-            messages.append(function_call_result)
-            # print(messages)
-    else:
-        print(response.text)
+    # If the model didn't call any tools, we've reached the final answer
+    if not message.get('tool_calls'):
+        if not message.get('content'):
+            print("\n[Done]: Final response received.")
         break
 
-    if response.usage_metadata is not None and args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+    # If the model called tools, handle them
+    if message.get('tool_calls'):
+        for tool in message['tool_calls']:
+            function_name = tool['function']['name']
+            function_args = tool['function']['arguments']
+            
+            # Ensure function_args is a dict if it's returned as a JSON string
+            if isinstance(function_args, str):
+                try:
+                    function_args = json.loads(function_args)
+                except:
+                    pass
+            
+            print(f" - [Action]: Calling {function_name}({json.dumps(function_args)})")
+            result = call_function(function_name, function_args, args.verbose)
+            
+            result_text = str(result.get('result') or result.get('error'))
+            # Print a snippet of the result to keep the user informed
+            snippet = (result_text[:100] + '...') if len(result_text) > 100 else result_text
+            print(f" - [Result]: {snippet}")
+            
+            # Use 'tool' role with function result
+            messages.append({
+                'role': 'tool',
+                'tool_call_id': tool.get('id'),
+                'name': function_name,
+                'content': result_text,
+            })
 else:
     print("Error: Maximum number of iterations reached without a final response.")
     sys.exit(1)
