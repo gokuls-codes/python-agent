@@ -8,7 +8,7 @@ from google.genai import types
 from google.genai.errors import ServerError
 
 import prompts
-from functions.call_function import available_functions, call_function
+from functions.call_function import architect_tools, coder_tools, qa_tools, call_function
 
 load_dotenv()
 
@@ -22,11 +22,11 @@ args = parser.parse_args()
 
 DEFAULT_MODEL = "gemini-3.1-flash-lite-preview"
 
-def run_agent(agent_name, system_prompt, user_content, verbose=False):
+def run_agent(agent_name, system_prompt, user_content, tools, verbose=False):
     print(f"\n--- Running {agent_name} Agent ---")
     messages = [types.Content(role="user", parts=[types.Part(text=user_content)])]
     config = types.GenerateContentConfig(
-        tools=[available_functions],
+        tools=[tools],
         system_instruction=system_prompt
     )
 
@@ -74,11 +74,16 @@ def run_agent(agent_name, system_prompt, user_content, verbose=False):
     return None
 
 # Architect writes todo.md
-architect_response = run_agent("Architect", prompts.architect_system_prompt, args.user_prompt, args.verbose)
+architect_response = run_agent("Architect", prompts.architect_system_prompt, args.user_prompt, architect_tools, args.verbose)
 
 if architect_response:
     # Coder reads todo.md and acts on it
-    coder_response = run_agent("Coder", prompts.coder_system_prompt, "Please read todo.md and complete the task.", args.verbose)
+    coder_response = run_agent("Coder", prompts.coder_system_prompt, "Please read todo.md and complete the task.", coder_tools, args.verbose)
+    
+    if coder_response:
+        # QA Agent verifies the work
+        qa_response = run_agent("QA", prompts.qa_system_prompt, f"The original request was: {args.user_prompt}. Please verify the implementation.", qa_tools, args.verbose)
+
 
 
 

@@ -1,6 +1,13 @@
-# Todo List for Fixing the Calculator
+# Plan to add division to the calculator
 
-- [x] Analyze `pkg/calculator.py` to identify the issue with operator precedence.
-- [x] Correct the `precedence` dictionary in `Calculator` class.
-    - Currently `+` (4) > `*` (1) which is incorrect mathematically (Multiplication and Division should have higher precedence than Addition and Subtraction).
-- [x] Run `tests.py` to verify the fixes and ensure no regressions.
+1. **Modify `pkg/calculator.py`**:
+    - Add the division operator (`/`) to `self.operators` in the `Calculator.__init__` method.
+    - Implement the division logic, ensuring to handle division by zero.
+    - Update `self.precedence` to include `/` with the same precedence as multiplication (`*`).
+
+2. **Verify changes**:
+    - Run the calculator to ensure `/` is parsed and evaluated correctly.
+    - Add a test case for division in `tests.py` if necessary.
+
+3. **Final check**:
+    - Ensure division by zero raises an appropriate error.

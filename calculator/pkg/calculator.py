@@ -6,7 +6,7 @@ class Calculator:
             "+": lambda a, b: a + b,
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
-            "/": lambda a, b: a / b,
+            "/": lambda a, b: a / b if b != 0 else float('inf'),
         }
         self.precedence = {
             "+": 1,
@@ -58,4 +58,8 @@ class Calculator:
 
         b = values.pop()
         a = values.pop()
+        
+        if operator == "/" and b == 0:
+            raise ZeroDivisionError("division by zero")
+            
         values.append(self.operators[operator](a, b))
