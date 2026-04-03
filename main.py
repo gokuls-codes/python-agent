@@ -11,6 +11,7 @@ import prompts
 from functions.call_function import architect_tools, coder_tools, qa_tools, call_function
 from logger import agent_logger
 from usage_tracker import track_usage, tracker
+from guardrails import check_prompt
 
 load_dotenv()
 
@@ -115,6 +116,12 @@ try:
     current_instruction = args.user_prompt
     handoff_count = 0
     final_output = None
+
+    # Step 0: Security Guardrail Check
+    is_safe, reason = check_prompt(client, current_instruction)
+    if not is_safe:
+        agent_logger.error(f"Guardrail Blocked Input: {reason}")
+        sys.exit(1)
 
     while current_agent and handoff_count <= MAX_HANDOFFS:
         agent_logger.info(f"Execution Loop: Agent {current_agent} (Handoff {handoff_count})", extra={

@@ -2,6 +2,7 @@ import logging
 import json
 import datetime
 import sys
+import os
 
 class JsonFormatter(logging.Formatter):
     """
@@ -37,17 +38,33 @@ class JsonFormatter(logging.Formatter):
 
 def setup_logger(name="python-agent", level=logging.INFO):
     """
-    Configures the logger to output JSON to stdout.
+    Configures the logger to output JSON to both stdout and a session file.
     """
     logger = logging.getLogger(name)
     logger.setLevel(level)
     
+    # Ensure .sessions directory exists
+    sessions_dir = ".sessions"
+    os.makedirs(sessions_dir, exist_ok=True)
+    
+    # Generate session ID based on timestamp
+    session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = os.path.join(sessions_dir, f"session_{session_id}.log")
+
     # Avoid duplicate handlers if setup_logger is called multiple times
     if not logger.handlers:
-        handler = logging.StreamHandler(sys.stdout)
+        # 1. Console Handler (Standard Out)
+        console_handler = logging.StreamHandler(sys.stdout)
         formatter = JsonFormatter(datefmt="%Y-%m-%dT%H:%M:%SZ")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+        
+        # 2. File Handler (Persistent Log)
+        file_handler = logging.FileHandler(log_filename)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        
+        logger.info(f"Logging initialized. Session ID: {session_id}", extra={"log_file": log_filename})
         
     return logger
 
