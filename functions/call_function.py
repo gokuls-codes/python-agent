@@ -5,6 +5,7 @@ from .run_python_file import schema_run_python_file, run_python_file_in_docker
 from .write_file import schema_write_file, write_file
 from .read_knowledge import schema_read_knowledge, read_knowledge
 from .update_knowledge import schema_update_knowledge, update_knowledge
+from logger import agent_logger
 
 schema_handoff_to_agent = {
     "name": "handoff_to_agent",
@@ -76,13 +77,13 @@ function_map = {
 
 
 def call_function(function_call, verbose=False):
-    if verbose:
-        print(f"Calling function: {function_call.name}({function_call.args})")
-
-    else:
-        print(f" - Calling function: {function_call.name}")
-
     function_name = function_call.name or ""
+    args = dict(function_call.args) if function_call.args else {}
+    
+    agent_logger.info(f"Calling function: {function_name}", extra={
+        "function_name": function_name,
+        "function_args": args if verbose else "Redacted (verbose=False)"
+    })
 
     if function_name not in function_map:
         return types.Content(
