@@ -1,4 +1,5 @@
 import math
+from fractions import Fraction
 
 class Calculator:
     def __init__(self):
@@ -6,7 +7,7 @@ class Calculator:
             "+": {"arity": 2, "func": lambda a, b: a + b, "precedence": 1},
             "-": {"arity": 2, "func": lambda a, b: a - b, "precedence": 1},
             "*": {"arity": 2, "func": lambda a, b: a * b, "precedence": 2},
-            "/": {"arity": 2, "func": lambda a, b: a / b if b != 0 else float('inf'), "precedence": 2},
+            "/": {"arity": 2, "func": lambda a, b: Fraction(a) / Fraction(b) if b != 0 else float('inf'), "precedence": 2},
             "^": {"arity": 2, "func": lambda a, b: a ** b, "precedence": 3},
             "sqrt": {"arity": 1, "func": lambda a: math.sqrt(a), "precedence": 4},
             "sin": {"arity": 1, "func": lambda a: math.sin(a), "precedence": 4},
@@ -37,7 +38,8 @@ class Calculator:
                 operators.append(token)
             else:
                 try:
-                    values.append(float(token))
+                    # Convert to Fraction if possible, otherwise float
+                    values.append(Fraction(token))
                 except ValueError:
                     raise ValueError(f"Unknown token: '{token}'. Please check for typos or unsupported operations.")
 

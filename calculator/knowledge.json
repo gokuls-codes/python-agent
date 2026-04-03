@@ -4,5 +4,7 @@
   "application_structure": "The application is a CLI-based calculator. It uses `pkg/calculator.py` for logic and `main.py` as the entry point. It optionally uses the `rich` library for improved UI if available. Supports direct expression evaluation via command line arguments and an interactive mode.",
   "advanced_functions_implemented": "Implemented sin, cos, tan, log functions in `pkg/calculator.py` and verified with unit tests.",
   "history_persistence_status": "The history persistence feature (save_to_history/load_history) is implemented in pkg/history.py and is fully integrated into both simple and rich interactive modes in main.py. The functionality is verified by tests in test_history.py. Documentation in todo.md needs to be updated to reflect completion.",
-  "project_status": "The calculator project has been refactored, and all implemented mathematical features (basic operators, sqrt, sin, cos, tan, log) pass the full test suite. The project is stable."
+  "project_status": "The calculator project has been refactored, and all implemented mathematical features (basic operators, sqrt, sin, cos, tan, log) pass the full test suite. The project is stable.",
+  "calculator_logic_file": "pkg/calculator.py",
+  "main_interface_file": "main.py"
 }

@@ -2,6 +2,7 @@
 
 import unittest
 import math
+from fractions import Fraction
 from pkg.calculator import Calculator
 
 
@@ -22,6 +23,12 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(result, 12)
 
     def test_division(self):
+        # 1/2 is expected
+        result = self.calculator.evaluate("1 / 2")
+        self.assertEqual(result, Fraction(1, 2))
+
+    def test_division_whole(self):
+        # 10/2 = 5
         result = self.calculator.evaluate("10 / 2")
         self.assertEqual(result, 5)
 
@@ -32,7 +39,7 @@ class TestCalculator(unittest.TestCase):
     def test_exponentiation_precedence(self):
         # 2 + 3 * 2 ^ 2 = 2 + 3 * 4 = 14
         result = self.calculator.evaluate("2 + 3 * 2 ^ 2")
-        self.assertEqual(result, 14.0)
+        self.assertEqual(result, 14)
 
     def test_division_by_zero(self):
         with self.assertRaises(ZeroDivisionError):
@@ -43,6 +50,7 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(result, 17)
 
     def test_complex_expression(self):
+        # 2 * 3 - 8 / 2 + 5 = 6 - 4 + 5 = 7
         result = self.calculator.evaluate("2 * 3 - 8 / 2 + 5")
         self.assertEqual(result, 7)
 

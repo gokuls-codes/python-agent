@@ -1,16 +1,22 @@
-# Calculator Project Development Roadmap
+# Task: Display division results as fractions
 
-## Project Status
-The application is a CLI-based calculator utilizing a shunting-yard style algorithm. It is modularized with `pkg/calculator.py` handling logic and `main.py` managing the CLI interface and optional rich formatting.
+## Background
+The current calculator implementation in `pkg/calculator.py` uses floating-point division for the `/` operator. The user wants the output to be displayed as a fraction when applicable.
 
-## Recent Achievements
-- Square root functionality has been implemented and verified.
-- Advanced mathematical functions (sin, cos, tan, log) have been implemented and verified.
-- History persistence in interactive mode has been implemented and verified.
-- Improved robustness and error reporting in `pkg/calculator.py`.
+## Current State
+- `Calculator.evaluate` uses floating-point math.
+- `main.py` formats the result, handling integer conversion for floats like `5.0`.
 
-## Completed Tasks
-- [x] Refactored `pkg/calculator.py` for better readability and extensibility.
+## Plan
+1.  **Modify `pkg/calculator.py`**:
+    - Update the division logic to use Python's `fractions.Fraction` module.
+    - Handle division so that the result maintains fractional representation when it's not a whole number.
+2.  **Modify `main.py`**:
+    - Update the output formatting logic to correctly display `fractions.Fraction` objects.
+3.  **Testing**:
+    - Ensure basic arithmetic still works.
+    - Add/Update tests to verify that `1 / 2` outputs `1/2` instead of `0.5`.
 
-## Outstanding Tasks
-- [ ] Consider adding a configuration file to store user preferences for UI themes.
+## Notes
+- Need to import `fractions.Fraction`.
+- Consider if all calculations should use `Fraction` or just the final output formatting. Using `Fraction` for the calculation chain might be cleaner to avoid precision issues.

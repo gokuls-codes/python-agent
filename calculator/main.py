@@ -1,6 +1,7 @@
 # main.py
 
 import sys
+from fractions import Fraction
 from pkg.calculator import Calculator
 from pkg.history import save_to_history, load_history
 
@@ -13,6 +14,15 @@ try:
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+
+def format_result(result):
+    if isinstance(result, Fraction):
+        if result.denominator == 1:
+            return str(result.numerator)
+        return str(result)
+    elif isinstance(result, float) and result.is_integer():
+        return str(int(result))
+    return str(result)
 
 def print_separator():
     print("-" * 40)
@@ -69,19 +79,18 @@ def process_expression(calculator, expression, console=None, use_rich=True):
     try:
         result = calculator.evaluate(expression)
         if result is not None:
-            if isinstance(result, float) and result.is_integer():
-                result = int(result)
+            formatted_result = format_result(result)
             
             if use_rich and console:
                 panel = Panel(
-                    Text(f"{expression} = {result}", style="bold green"),
+                    Text(f"{expression} = {formatted_result}", style="bold green"),
                     title="Result",
                     border_style="blue",
                     expand=False
                 )
                 console.print(panel)
             else:
-                print_simple_panel("Result", f"{expression} = {result}")
+                print_simple_panel("Result", f"{expression} = {formatted_result}")
         else:
             if use_rich and console:
                 console.print("[red]Error: Expression is empty or contains only whitespace.[/red]")

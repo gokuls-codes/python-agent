@@ -1,7 +1,7 @@
 from google.genai import types
 from .get_files_info import schema_get_files_info, get_files_info
 from .get_file_content import schema_get_file_content, get_file_content
-from .run_python_file import schema_run_python_file, run_python_file
+from .run_python_file import schema_run_python_file, run_python_file_in_docker
 from .write_file import schema_write_file, write_file
 from .read_knowledge import schema_read_knowledge, read_knowledge
 from .update_knowledge import schema_update_knowledge, update_knowledge
@@ -66,7 +66,7 @@ qa_tools = types.Tool(
 function_map = {
         "get_files_info": get_files_info,
         "get_file_content": get_file_content,
-        "run_python_file": run_python_file,
+        "run_python_file": run_python_file_in_docker,
         "write_file": write_file,
         "handoff_to_agent": handoff_to_agent,
         "read_knowledge": read_knowledge,
