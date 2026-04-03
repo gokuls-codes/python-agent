@@ -8,6 +8,7 @@ class JsonFormatter(logging.Formatter):
     Formatter that outputs JSON strings for each log record.
     """
     def format(self, record):
+        # Base attributes
         log_record = {
             "timestamp": self.formatTime(record, self.datefmt),
             "level": record.levelname,
@@ -15,10 +16,19 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         
-        # Include extra data if it exists
-        if hasattr(record, 'extra'):
-            log_record.update(record.extra)
-            
+        # Standard attributes to exclude from extra
+        standard_attrs = {
+            'args', 'asctime', 'created', 'exc_info', 'exc_text', 'filename', 
+            'funcName', 'levelname', 'levelno', 'lineno', 'module', 
+            'msecs', 'msg', 'name', 'pathname', 'process', 'processName', 
+            'relativeCreated', 'stack_info', 'thread', 'threadName'
+        }
+
+        # Include any extra data added via the 'extra' parameter
+        for key, value in record.__dict__.items():
+            if key not in standard_attrs and not key.startswith('_'):
+                log_record[key] = value
+                
         # Add exception info if present
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)

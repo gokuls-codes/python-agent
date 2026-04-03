@@ -9,7 +9,7 @@ from logger import agent_logger
 
 schema_handoff_to_agent = {
     "name": "handoff_to_agent",
-    "description": "Hand off the task to another agent. Use 'Coder' after creating todo.md, or 'QA' after the work is done.",
+    "description": "Hand off the task to another agent. Use 'Coder' to implement changes or 'QA' to verify work. IMPORTANT: If the work is already perfectly completed, do NOT call this tool; instead, provide a final textual response summarizing your findings.",
     "parameters": {
         "type": "object",
         "properties": {

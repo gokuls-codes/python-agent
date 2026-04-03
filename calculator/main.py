@@ -2,7 +2,7 @@
 
 import sys
 from fractions import Fraction
-from pkg.calculator import Calculator
+from pkg.calculator import Calculator, solve_quadratic
 from pkg.history import save_to_history, load_history
 
 try:
@@ -16,6 +16,10 @@ except ImportError:
     RICH_AVAILABLE = False
 
 def format_result(result):
+    if isinstance(result, (tuple, list)):
+        return ", ".join([format_result(r) for r in result])
+    if isinstance(result, complex):
+        return f"{result.real:.2f}{result.imag:+.2f}j"
     if isinstance(result, Fraction):
         if result.denominator == 1:
             return str(result.numerator)
@@ -39,6 +43,15 @@ def main():
     
     if len(sys.argv) > 1:
         arg = sys.argv[1]
+        if arg == "quadratic":
+            if len(sys.argv) != 5:
+                print("Usage: python main.py quadratic a b c")
+                return
+            a, b, c = map(float, sys.argv[2:5])
+            roots = solve_quadratic(a, b, c)
+            print(f"Roots: {format_result(roots)}")
+            return
+        
         if arg in ("--interactive", "-i"):
             if RICH_AVAILABLE:
                 interactive_mode_rich(calculator, Console())
@@ -66,12 +79,14 @@ def print_help():
         table.add_column("Command", style="bold yellow")
         table.add_column("Description")
         table.add_row("python main.py [expression]", "Evaluate an expression directly")
+        table.add_row("python main.py quadratic a b c", "Solve ax^2 + bx + c = 0")
         table.add_row("python main.py --interactive / -i", "Enter interactive mode")
         table.add_row("python main.py --help / -h", "Show this help message")
         console.print(table)
     else:
         print("Calculator App Usage:")
         print("  python main.py [expression]        - Evaluate an expression")
+        print("  python main.py quadratic a b c     - Solve ax^2 + bx + c = 0")
         print("  python main.py --interactive / -i  - Enter interactive mode")
         print("  python main.py --help / -h         - Show this help message")
 

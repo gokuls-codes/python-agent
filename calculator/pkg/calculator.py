@@ -1,5 +1,23 @@
 import math
+import cmath
 from fractions import Fraction
+
+def solve_quadratic(a, b, c):
+    """
+    Solves ax^2 + bx + c = 0
+    Returns a tuple of two roots.
+    """
+    if a == 0:
+        if b == 0:
+            raise ValueError("Not a quadratic equation (a=0 and b=0).")
+        return (-c / b,)
+    
+    d = (b**2) - (4*a*c)
+    
+    root1 = (-b - cmath.sqrt(d)) / (2*a)
+    root2 = (-b + cmath.sqrt(d)) / (2*a)
+    
+    return root1, root2
 
 class Calculator:
     def __init__(self):
@@ -7,13 +25,14 @@ class Calculator:
             "+": {"arity": 2, "func": lambda a, b: a + b, "precedence": 1},
             "-": {"arity": 2, "func": lambda a, b: a - b, "precedence": 1},
             "*": {"arity": 2, "func": lambda a, b: a * b, "precedence": 2},
-            "/": {"arity": 2, "func": lambda a, b: Fraction(a) / Fraction(b) if b != 0 else float('inf'), "precedence": 2},
-            "^": {"arity": 2, "func": lambda a, b: a ** b, "precedence": 3},
-            "sqrt": {"arity": 1, "func": lambda a: math.sqrt(a), "precedence": 4},
-            "sin": {"arity": 1, "func": lambda a: math.sin(a), "precedence": 4},
-            "cos": {"arity": 1, "func": lambda a: math.cos(a), "precedence": 4},
-            "tan": {"arity": 1, "func": lambda a: math.tan(a), "precedence": 4},
-            "log": {"arity": 1, "func": lambda a: math.log10(a), "precedence": 4},
+            "/": {"arity": 2, "func": lambda a, b: (complex(a) / complex(b)) if b != 0 else float('inf'), "precedence": 2},
+            "^": {"arity": 2, "func": lambda a, b: complex(a) ** complex(b), "precedence": 3},
+            "sqrt": {"arity": 1, "func": lambda a: cmath.sqrt(complex(a)), "precedence": 4},
+            "sin": {"arity": 1, "func": lambda a: cmath.sin(complex(a)), "precedence": 4},
+            "cos": {"arity": 1, "func": lambda a: cmath.cos(complex(a)), "precedence": 4},
+            "tan": {"arity": 1, "func": lambda a: cmath.tan(complex(a)), "precedence": 4},
+            "log": {"arity": 1, "func": lambda a: cmath.log10(complex(a)), "precedence": 4},
+            "frac": {"arity": 1, "func": lambda a: Fraction(str(a)).limit_denominator(), "precedence": 4},
         }
 
     def evaluate(self, expression):
@@ -38,8 +57,15 @@ class Calculator:
                 operators.append(token)
             else:
                 try:
-                    # Convert to Fraction if possible, otherwise float
-                    values.append(Fraction(token))
+                    # Attempt to parse as complex directly
+                    if 'j' in token or 'J' in token:
+                        values.append(complex(token))
+                    else:
+                        # Try to parse as a float/int first, fallback to complex
+                        try:
+                            values.append(float(token))
+                        except ValueError:
+                            values.append(complex(token))
                 except ValueError:
                     raise ValueError(f"Unknown token: '{token}'. Please check for typos or unsupported operations.")
 
@@ -52,7 +78,11 @@ class Calculator:
             else:
                 raise ValueError("Expression is malformed.")
 
-        return values[0]
+        # Cleanup: convert complex numbers with 0 imaginary part to real/int
+        res = values[0]
+        if isinstance(res, complex) and abs(res.imag) < 1e-10:
+            return res.real
+        return res
 
     def _apply_operator(self, operators, values):
         if not operators:
@@ -77,5 +107,5 @@ class Calculator:
             a = values.pop()
             try:
                 values.append(op_info["func"](a))
-            except ValueError as e:
+            except Exception as e:
                 raise ValueError(f"Mathematical error during operation '{operator}': {e}")
